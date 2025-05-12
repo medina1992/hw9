@@ -8,16 +8,13 @@ import com.opencsv.CSVReader;
 import guru.qa.model.Glossary;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-
 import java.io.File;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.util.List;
-import java.util.Objects;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
-
 import static com.codeborne.selenide.Selenide.$;
 import static com.codeborne.selenide.Selenide.open;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -118,21 +115,23 @@ public class FilesParsingTest {
     }
 
 
+
     @Test
-    void zipFileParsingTest3() throws Exception {
-        try (ZipInputStream zis = new ZipInputStream(
-                cl.getResourceAsStream("zipTestHW9.zip")
-        )) {
+            void zipFileParsingTest2() throws Exception {
+        InputStream is = getClass().getClassLoader().getResourceAsStream("zipTestHW9.zip");
+        assertNotNull(is, "ZIP file not found in resources!");
+
+        try (ZipInputStream zis = new ZipInputStream(is)) {
             ZipEntry entry;
             while ((entry = zis.getNextEntry()) != null) {
                 System.out.println(entry.getName());
             }
-
-
         }
-
-
     }
 
+
 }
+
+
+
 
