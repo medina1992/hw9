@@ -2,34 +2,24 @@ package guru.qa;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.text.PDFTextStripper;
-
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
-
 import static org.junit.jupiter.api.Assertions.*;
-//import com.codeborne.xlstest.XLS;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.opencsv.CSVReader;
 import guru.qa.model.Glossary;
-import org.apache.commons.compress.archivers.dump.InvalidFormatException;
 import org.apache.poi.ss.usermodel.*;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-
 import java.nio.charset.StandardCharsets;
-
-
 import java.io.*;
 import java.util.List;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
-
 import static com.codeborne.selenide.Selenide.$;
 import static com.codeborne.selenide.Selenide.open;
-import static org.junit.jupiter.api.Assertions.*;
+
 
 
 public class FilesParsingTest {
@@ -138,7 +128,7 @@ public class FilesParsingTest {
 
     }
 
-
+//Реализовать чтение и проверку содержимого каждого файла из архива
     @Test
     void zipFileParsingTest2() throws Exception {
         InputStream is = getClass().getClassLoader().getResourceAsStream("zipTestHW9.zip");
