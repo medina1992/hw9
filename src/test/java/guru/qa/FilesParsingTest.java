@@ -129,65 +129,69 @@ public class FilesParsingTest {
     }
 
 //Реализовать чтение и проверку содержимого каждого файла из архива
+
+    private InputStream getFileFromZip(String fileName) {
+        InputStream is = getClass().getClassLoader().getResourceAsStream(fileName);
+        return is;
+    }
     @Test
-    void zipFileParsingTest2() throws Exception {
-        InputStream is = getClass().getClassLoader().getResourceAsStream("zipTestHW9.zip");
-        assertNotNull(is, "ZIP file not found in resources!");
-
-        try (ZipInputStream zis = new ZipInputStream(is)) {
+    void testCsvFile() throws Exception {
+        try (ZipInputStream zis = new ZipInputStream(getFileFromZip("zipTestHW9.zip"))) {
             ZipEntry entry;
-
             while ((entry = zis.getNextEntry()) != null) {
-                String name = entry.getName();
-                System.out.println("Found: " + name);
-
-                ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                byte[] buffer = new byte[1024];
-                int len;
-                while ((len = zis.read(buffer)) > 0) {
-                    baos.write(buffer, 0, len);
+                if (entry.getName().endsWith(".csv")) {
+                    String content = new String(zis.readAllBytes(), StandardCharsets.UTF_8);
+                    assertTrue(content.contains("Rachel"));
                 }
-                byte[] fileBytes = baos.toByteArray();
+            }
+        }
+    }
 
-                if (name.endsWith(".csv")) {
-                    String content = new String(fileBytes, StandardCharsets.UTF_8);
-                    if (content.contains("Rachel")) {
-
-                    }
-                } else if (name.endsWith(".pdf")) {
-                    try (PDDocument document = PDDocument.load(new ByteArrayInputStream(fileBytes))) {
-                        String pdfText = new PDFTextStripper().getText(document);
-                        if (pdfText.contains("This is a simple PDF file. Fun fun fun.")) {
-
-                        }
-                    }
-                } else if (name.equals("sampleXLS1.xlsx")) {
-                    try (InputStream stream = new ByteArrayInputStream(fileBytes)) {
-                        Workbook workbook = WorkbookFactory.create(stream);
-
-
-                        outer:
-                        for (int i = 0; i < workbook.getNumberOfSheets(); i++) {
-                            Sheet sheet = workbook.getSheetAt(i);
-                            for (Row row : sheet) {
-                                for (Cell cell : row) {
-                                    System.out.println("Cell: " + cell.toString());
-
-                                    if (cell.getCellType() == CellType.STRING &&
-                                            cell.getStringCellValue().contains("Input")) {
-                                        break outer;
-                                    }
-                                }
-                            }
-                        }
-                        workbook.close();
+    @Test
+    void testPdfFile() throws Exception {
+        try (ZipInputStream zis = new ZipInputStream(getFileFromZip("zipTestHW9.zip"))) {
+            ZipEntry entry;
+            while ((entry = zis.getNextEntry()) != null) {
+                if (entry.getName().endsWith(".pdf")) {
+                    try (PDDocument doc = PDDocument.load(zis)) {
+                        String text = new PDFTextStripper().getText(doc);
+                        assertTrue(text.contains("This is a simple PDF file. Fun fun fun."));
                     }
                 }
             }
         }
-
-
     }
+
+    @Test
+    void testXlsxFile() throws Exception {
+        try (ZipInputStream zis = new ZipInputStream(getFileFromZip("zipTestHW9.zip"))) {
+            ZipEntry entry;
+            while ((entry = zis.getNextEntry()) != null) {
+                if (entry.getName().endsWith(".xlsx")) {
+                    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                    zis.transferTo(baos);
+                    ByteArrayInputStream xlsxInputStream = new ByteArrayInputStream(baos.toByteArray());
+
+                    try (Workbook workbook = WorkbookFactory.create(xlsxInputStream)) {
+                        boolean found = false;
+                        for (Sheet sheet : workbook) {
+                            for (Row row : sheet) {
+                                for (Cell cell : row) {
+                                    if (cell.getCellType() == CellType.STRING &&
+                                            cell.getStringCellValue().contains("Input")) {
+                                        found = true;
+                                    }
+                                }
+                            }
+                        }
+                        assertTrue(found);
+                    }
+                }
+            }
+        }
+    }
+
+
 }
 
 
