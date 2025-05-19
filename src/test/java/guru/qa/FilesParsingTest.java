@@ -131,65 +131,83 @@ public class FilesParsingTest {
 //Реализовать чтение и проверку содержимого каждого файла из архива
 
     private InputStream getFileFromZip(String fileName) {
-        InputStream is = getClass().getClassLoader().getResourceAsStream(fileName);
-        return is;
+        return getClass().getClassLoader().getResourceAsStream(fileName);
     }
+
     @Test
     void testCsvFile() throws Exception {
+        boolean found = false;
         try (ZipInputStream zis = new ZipInputStream(getFileFromZip("zipTestHW9.zip"))) {
             ZipEntry entry;
             while ((entry = zis.getNextEntry()) != null) {
                 if (entry.getName().endsWith(".csv")) {
+                    found = true;
                     String content = new String(zis.readAllBytes(), StandardCharsets.UTF_8);
-                    assertTrue(content.contains("Rachel"));
+                    assertTrue(content.contains("Rachel"),
+                            "CSV-файл найден, но не содержит ожидаемой строки");
                 }
             }
         }
+        assertTrue(found, "В архиве не найден ни один .csv-файл");
     }
 
     @Test
     void testPdfFile() throws Exception {
+        boolean found = false;
         try (ZipInputStream zis = new ZipInputStream(getFileFromZip("zipTestHW9.zip"))) {
             ZipEntry entry;
             while ((entry = zis.getNextEntry()) != null) {
                 if (entry.getName().endsWith(".pdf")) {
+                    found = true;
                     try (PDDocument doc = PDDocument.load(zis)) {
                         String text = new PDFTextStripper().getText(doc);
-                        assertTrue(text.contains("This is a simple PDF file. Fun fun fun."));
+                        assertTrue(text.contains("This is a simple PDF file. Fun fun fun."),
+                                "PDF-файл найден, но не содержит ожидаемой строки");
                     }
                 }
             }
         }
+        assertTrue(found, "В архиве не найден ни один .pdf-файл");
     }
 
     @Test
     void testXlsxFile() throws Exception {
+        boolean found = false;
         try (ZipInputStream zis = new ZipInputStream(getFileFromZip("zipTestHW9.zip"))) {
             ZipEntry entry;
             while ((entry = zis.getNextEntry()) != null) {
                 if (entry.getName().endsWith(".xlsx")) {
+                    found = true;
+
+
                     ByteArrayOutputStream baos = new ByteArrayOutputStream();
                     zis.transferTo(baos);
-                    ByteArrayInputStream xlsxInputStream = new ByteArrayInputStream(baos.toByteArray());
+                    try (Workbook workbook = WorkbookFactory.create(
+                            new ByteArrayInputStream(baos.toByteArray()))) {
 
-                    try (Workbook workbook = WorkbookFactory.create(xlsxInputStream)) {
-                        boolean found = false;
+                        boolean containsExpected = false;
                         for (Sheet sheet : workbook) {
                             for (Row row : sheet) {
                                 for (Cell cell : row) {
                                     if (cell.getCellType() == CellType.STRING &&
                                             cell.getStringCellValue().contains("Input")) {
-                                        found = true;
+                                        containsExpected = true;
+                                        break;
                                     }
                                 }
+                                if (containsExpected) break;
                             }
+                            if (containsExpected) break;
                         }
-                        assertTrue(found);
+                        assertTrue(containsExpected,
+                                "XLSX-файл найден, но не содержит строки с 'Input'");
                     }
                 }
             }
         }
+        assertTrue(found, "В архиве не найден ни один .xlsx-файл");
     }
+
 
 
 }
